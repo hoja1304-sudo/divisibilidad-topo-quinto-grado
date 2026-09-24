@@ -276,7 +276,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="opts" data-group="nivel">
         <button class="opt" data-v="1" aria-pressed="true">🌱 Básico<small>Un divisor · números de 2 cifras</small></button>
         <button class="opt" data-v="2" aria-pressed="false">🌿 Intermedio<small>Dos divisores · hasta 3 cifras</small></button>
-        <button class="opt" data-v="3" aria-pressed="false">🌳 Avanzado<small>De uno a cuatro divisores · hasta 3 cifras</small></button>
+        <button class="opt" data-v="3" aria-pressed="false">🌳 Avanzado<small>De uno a cuatro divisores · números de 3 y 4 cifras</small></button>
       </div>
     </fieldset>
     <fieldset><legend>Los topos entran y salen cada…</legend>
@@ -611,7 +611,7 @@ const CONDS = {
   2: [[2,3],[2,5],[3,5],[2,10],[3,10],[5,10]],
   3: [[2],[3],[5],[10],[2,3],[2,5],[3,5],[2,10],[3,10],[5,10],[2,3,5],[2,3,10],[2,5,10],[3,5,10],[2,3,5,10]]
 };
-const RANGE = {1:[10,99], 2:[10,999], 3:[10,999]};
+const RANGE = {1:[10,99], 2:[10,999], 3:[100,9999]};   // avanzado: solo números de 3 y 4 cifras
 const joinY = a => a.length < 2 ? a.join('') : a.slice(0,-1).join(', ') + ' y ' + a[a.length-1];
 const condText = c => 'divisible ' + joinY(c.map(d => 'por ' + d));
 const condSpeech = c => 'divisible ' + joinY(c.map(d => 'por ' + WORDS[d]));
@@ -629,15 +629,39 @@ function makeNums(c){
   const m = c.reduce((a,b) => a*b/gcd(a,b), 1);
   const correct = m * rnd(Math.ceil(lo/m), Math.floor(hi/m));
   const nums = [correct];
-  let tries = 0;
-  while(nums.length < 3 && tries++ < 2000){
-    const n = rnd(lo,hi);
-    if(sat(n,c) || nums.includes(n)) continue;
-    // preferir distractores que cumplen casi todo (así hay que revisar cada regla)
-    const score = c.filter(d => divi(n,d)).length;
-    if(c.length > 1 && score < c.length - 1 && Math.random() < .7 && tries < 1500) continue;
-    if(c.length === 1 && c[0] === 10 && n % 10 !== 5 && Math.random() < .5 && tries < 1500) continue;
-    nums.push(n);
+  const find = pred => { for(let t = 0; t < 4000; t++){ const n = rnd(lo,hi); if(!nums.includes(n) && pred(n)) return n; } return null; };
+  if(c.length > 1){
+    // Varios divisores: cada distractor cumple todas las reglas menos una, y cada uno falla una regla distinta.
+    // Ej.: «por 2 y 5» → 710 (ambos), 346 (solo por 2) y 345 (solo por 5).
+    for(const d of c.slice().sort(() => Math.random() - .5)){
+      if(nums.length >= 3) break;
+      const otros = c.filter(x => x !== d);
+      const n = find(v => !divi(v,d) && otros.every(x => divi(v,x)));   // algunas combinaciones son imposibles (p. ej. por 10 pero no por 2)
+      if(n != null) nums.push(n);
+    }
+    // si faltan distractores: el que cumpla más reglas (o termine en 5 cuando se pide 10),
+    // prefiriendo un tipo distinto al de los distractores que ya están
+    const firma = v => c.filter(d => divi(v,d)).join(',') + (v % 10 === 5 ? '·5' : '');
+    while(nums.length < 3){
+      const usadas = nums.slice(1).map(firma);
+      let best = null, bs = -1;
+      for(let t = 0; t < 400; t++){
+        const v = rnd(lo,hi);
+        if(sat(v,c) || nums.includes(v)) continue;
+        const sc = c.filter(d => divi(v,d)).length + (c.includes(10) && v % 10 === 5 ? .5 : 0)
+                 + (usadas.includes(firma(v)) ? 0 : 2) + Math.random()*.1;
+        if(sc > bs){ bs = sc; best = v; }
+      }
+      nums.push(best ?? find(v => !sat(v,c)));
+    }
+  }else{
+    let tries = 0;
+    while(nums.length < 3 && tries++ < 2000){
+      const n = rnd(lo,hi);
+      if(sat(n,c) || nums.includes(n)) continue;
+      if(c[0] === 10 && n % 10 !== 5 && Math.random() < .5 && tries < 1500) continue;   // para «por 10», a veces uno que termina en 5
+      nums.push(n);
+    }
   }
   for(let i=nums.length-1;i>0;i--){ const j = rnd(0,i); [nums[i],nums[j]] = [nums[j],nums[i]]; }
   return {nums, correct};
