@@ -187,6 +187,46 @@ button{font:inherit;color:inherit;cursor:pointer}
   background:var(--panel2);color:var(--ink);font-weight:800}
 .teo-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
 
+/* ---------- PROBLEMAS ---------- */
+.btn-prob{background:#6d4bd8;color:#fff}
+#problemas{flex-direction:column;align-items:center;padding:70px 16px 30px}
+.prob{width:min(860px,100%)}
+.prob h2{text-align:center;font-size:clamp(1.4rem,3.5vw,2.1rem);margin:.1em 0 .4em}
+.prob-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:10px}
+.prob-bar .btn{font-size:clamp(.92rem,2vw,1.1rem);padding:.55em 1em}
+.prob-count{text-align:center;color:var(--soft);font-weight:700;margin:0 0 10px}
+.paper{background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:clamp(16px,2.1vw,20px);line-height:1.4;
+  border-radius:14px;padding:clamp(16px,4vw,40px);box-shadow:var(--shadow);border:1px solid #ddd}
+.paper p{margin:0 0 .8em}
+.ptab{width:100%;border-collapse:collapse;margin:1em 0 1.3em}
+.ptab th,.ptab td{padding:.45em .9em;font-weight:400;text-align:left}
+.ptab th:last-child,.ptab td:last-child{text-align:center}
+.ptab thead tr{border-top:2px solid #111;border-bottom:1.5px solid #111}
+.ptab tbody tr:last-child{border-bottom:2px solid #111}
+.popts{display:flex;flex-direction:column;gap:8px;margin-top:.6em}
+.popt{display:flex;align-items:center;gap:.8em;min-height:48px;text-align:left;background:#fafafa;border:2px solid #d9d9d9;
+  border-radius:12px;padding:.4em .8em;font:inherit;color:#111}
+.popt:hover:not(:disabled){border-color:#6d4bd8}
+.popt:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+.popt .l{font-weight:700;min-width:1.6em}
+.popt:disabled{cursor:default}
+.popt.ok{border-color:#1f9d55;background:#e8f7ee}
+.popt.bad{border-color:#d8453a;background:#fdeceb}
+.prob-fb{margin-top:14px}
+.fb-head{display:flex;align-items:center;gap:10px;font-weight:900;font-size:clamp(1.05rem,2.5vw,1.4rem);margin:4px 0 8px}
+.fb-head .em{font-size:2em;line-height:1}
+.fb-head.ok{color:var(--ok)}.fb-head.bad{color:var(--bad)}
+.exp.good{outline:3px solid var(--ok)}
+@media print{
+  @page{margin:2cm}
+  html,body{background:#fff!important}
+  .theme-toggle,.prob-bar,.prob-count,.prob h2,.prob-fb,.fx,.toast,.modal-bg{display:none!important}
+  #problemas{padding:0}
+  .paper{box-shadow:none;border:0;border-radius:0;padding:0;font-family:Arial,Helvetica,sans-serif;font-size:12pt;color:#000}
+  .popt{background:none!important;border:0!important;padding:0;min-height:0;margin:.3em 0;font-size:12pt}
+  .popt .l{font-weight:400}
+}
+
 @media (max-width:560px){
   .hud{padding-right:62px;gap:5px}
   .hud-left,.hud-right{gap:5px}
@@ -215,6 +255,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div class="home-buttons">
       <button class="btn btn-alt" id="btnTeoria">📘 Teoría</button>
       <button class="btn btn-main" id="btnJuego">🔨 Juego</button>
+      <button class="btn btn-prob" id="btnProblemas">📝 Problemas</button>
     </div>
     <p class="autoria"><strong>Elaborado por: Alberto Jiménez Ruiz</strong><br>Asesor Regional de Matemática DRE-Cartag-DAP-2026</p>
   </div>
@@ -303,6 +344,22 @@ button{font:inherit;color:inherit;cursor:pointer}
       <button class="btn btn-alt" data-go="teoria">📘 Repasar teoría</button>
       <button class="btn btn-ghost" data-go="inicio">🏠 Inicio</button>
     </div>
+  </div>
+</section>
+
+<!-- ============ PROBLEMAS ============ -->
+<section class="screen" id="problemas" aria-labelledby="tProb">
+  <div class="prob">
+    <h2 id="tProb">📝 Problemas</h2>
+    <div class="prob-bar">
+      <button class="btn btn-ghost" data-go="inicio">🏠 Volver al inicio</button>
+      <button class="btn btn-alt" id="btnOtroProb">🔄 Otro ítem</button>
+      <button class="btn btn-main" id="btnPdfProb">⬇️ Descargar PDF</button>
+      <button class="btn btn-prob" id="btnPrintProb">🖨️ Imprimir</button>
+    </div>
+    <p class="prob-count" id="probCount"></p>
+    <article class="paper" id="paper"></article>
+    <div class="prob-fb" id="probFb" aria-live="polite"></div>
   </div>
 </section>
 
@@ -835,6 +892,149 @@ function finish(){
   if(st >= 2){ chime(); const r = $('.res .big').getBoundingClientRect(); comicStars(r.left+r.width/2, r.top+r.height/2); }
   say(`Juego terminado. Obtuviste ${G.score} puntos.`);
 }
+
+/* ---------- Problemas ---------- */
+// Banco de ítems: para agregar uno, copiar un bloque y cambiar los datos.
+// «divisores» es la condición que se pregunta; debe cumplirla una sola fila.
+const PROBLEMAS = [
+  {
+    contexto: 'Un agricultor ha recolectado una cantidad de manzanas y las coloca en cajas de distintos colores. La siguiente tabla muestra la cantidad de manzanas que contiene cada caja:',
+    col1: 'Color de la caja', col2: 'Cantidad de manzanas', objeto: 'Caja',
+    filas: [['Roja',14],['Azul',18],['Verde',21]],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál es el color de la caja que contiene una cantidad de manzanas que corresponde a un número divisible por 2 y 3?',
+    divisores: [2,3]
+  },
+  {
+    contexto: 'Una vendedora acomoda naranjas en canastas de distintos colores. La siguiente tabla muestra la cantidad de naranjas que contiene cada canasta:',
+    col1: 'Color de la canasta', col2: 'Cantidad de naranjas', objeto: 'Canasta',
+    filas: [['Amarilla',42],['Blanca',35],['Celeste',28]],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál es el color de la canasta que contiene una cantidad de naranjas que corresponde a un número divisible por 5?',
+    divisores: [5]
+  },
+  {
+    contexto: 'En la biblioteca de una escuela se acomodaron libros en estantes de distintos colores. La siguiente tabla muestra la cantidad de libros que contiene cada estante:',
+    col1: 'Color del estante', col2: 'Cantidad de libros', objeto: 'Estante',
+    filas: [['Rojo',45],['Verde',80],['Azul',90]],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál es el color del estante que contiene una cantidad de libros que corresponde a un número divisible por 2, por 3 y por 5 simultáneamente?',
+    divisores: [2,3,5]
+  }
+];
+const LETRAS = ['A','B','C','D'];
+const esc = t => String(t).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const P = {order:[], pos:0, cur:null, idx:0};
+
+function nextProblem(){
+  if(P.pos >= P.order.length){
+    const last = P.order[P.order.length-1];
+    do{ P.order = PROBLEMAS.map((_,i) => i).sort(() => Math.random() - .5); }
+    while(PROBLEMAS.length > 1 && P.order[0] === last);
+    P.pos = 0;
+  }
+  P.idx = P.order[P.pos++];
+  P.cur = PROBLEMAS[P.idx];
+  renderProblem();
+}
+function renderProblem(){
+  const p = P.cur;
+  $('#probCount').textContent = `Ítem ${P.idx+1} de ${PROBLEMAS.length}`;
+  $('#paper').innerHTML = `
+    <p>Considere la siguiente información:</p>
+    <p>${esc(p.contexto)}</p>
+    <table class="ptab"><thead><tr><th>${esc(p.col1)}</th><th>${esc(p.col2)}</th></tr></thead>
+      <tbody>${p.filas.map(f => `<tr><td>${esc(f[0])}</td><td>${f[1]}</td></tr>`).join('')}</tbody></table>
+    <p>${esc(p.pregunta)}</p>
+    <div class="popts">${p.filas.map((f,i) => `<button class="popt" data-i="${i}"><span class="l">${LETRAS[i]})</span><span>${esc(f[0])}</span></button>`).join('')}</div>`;
+  $('#probFb').innerHTML = '';
+  $$('#paper .popt').forEach(b => b.addEventListener('click', () => answerProblem(+b.dataset.i)));
+}
+function answerProblem(i){
+  const p = P.cur, c = p.divisores;
+  const ok = p.filas.findIndex(f => sat(f[1], c));
+  const btns = $$('#paper .popt');
+  btns.forEach(b => b.disabled = true);
+  btns[ok].classList.add('ok');
+  if(i !== ok) btns[i].classList.add('bad');
+  (i === ok ? chime : boing)();
+  const head = i === ok
+    ? `<div class="fb-head ok"><span class="em">🥳</span>¡Correcto! La respuesta es ${LETRAS[ok]}) ${esc(p.filas[ok][0])}.</div>`
+    : `<div class="fb-head bad"><span class="em">😮</span>No es correcto. La respuesta es ${LETRAS[ok]}) ${esc(p.filas[ok][0])}. Veamos paso a paso:</div>`;
+  $('#probFb').innerHTML = head + p.filas.map((f,k) =>
+    `<div class="exp${k === ok ? ' good' : ''}"><h4>${LETRAS[k]}) ${esc(p.objeto)} ${esc(f[0].toLowerCase())}: <span class="n">${f[1]}</span></h4>${explain(f[1], c)}</div>`).join('');
+  $('#probFb').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* PDF del ítem en Arial 12, generado dentro del archivo (sin internet ni bibliotecas externas) */
+let arialW = null;
+function arialWidths(){
+  if(arialW) return arialW;
+  const g = document.createElement('canvas').getContext('2d');
+  g.font = '1000px Arial, Helvetica, sans-serif';
+  arialW = [];
+  for(let code = 32; code <= 255; code++){
+    const ch = (code < 127 || code >= 160) ? String.fromCharCode(code) : ' ';
+    arialW.push(Math.round(g.measureText(ch).width));
+  }
+  return arialW;
+}
+const winText = s => s.replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[–—]/g,'-')
+  .replace(/[^\x20-\x7e\xa0-\xff]/g,'?');
+const pdfEsc = s => winText(s).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+function textW(s, size){ const w = arialWidths(); let t = 0; for(const ch of winText(s)) t += w[ch.charCodeAt(0) - 32] || 500; return t * size / 1000; }
+function wrapText(s, maxW, size){
+  const words = s.split(' '), lines = []; let line = '';
+  for(const wd of words){
+    const test = line ? line + ' ' + wd : wd;
+    if(textW(test, size) > maxW && line){ lines.push(line); line = wd; } else line = test;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+function problemPDF(p){
+  const S = 12, LEAD = 16, L = 64, W = 595 - 2*L;
+  let y = 842 - 72; const ops = [];
+  const txt = (x, s) => ops.push(`BT /F1 ${S} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td (${pdfEsc(s)}) Tj ET`);
+  const rule = (w) => ops.push(`${w} w ${L} ${y.toFixed(2)} m ${L+W} ${y.toFixed(2)} l S`);
+  const para = s => { wrapText(s, W, S).forEach(l => { txt(L, l); y -= LEAD; }); };
+  para('Considere la siguiente información:');
+  para(p.contexto);
+  // tabla
+  const cx = L + W*.74, cell = (s, center) => txt(center ? cx - textW(s,S)/2 : L + 22, s);
+  y -= 4; rule(1.2);
+  y -= 19; cell(p.col1); cell(p.col2, true);
+  y -= 10; rule(1);
+  p.filas.forEach((f,i) => { y -= i ? 26 : 22; cell(f[0]); cell(String(f[1]), true); });
+  y -= 12; rule(1.2);
+  y -= 30;
+  para(p.pregunta);
+  y -= 8;
+  p.filas.forEach((f,i) => { txt(L, LETRAS[i] + ')'); txt(L + 28, f[0]); y -= 28; });
+
+  const stream = ops.join('\n');
+  const objs = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>',
+    `<< /Type /Font /Subtype /TrueType /BaseFont /Arial /FirstChar 32 /LastChar 255 /Widths [${arialWidths().join(' ')}] /Encoding /WinAnsiEncoding /FontDescriptor 5 0 R >>`,
+    '<< /Type /FontDescriptor /FontName /Arial /Flags 32 /FontBBox [-665 -325 2000 1006] /ItalicAngle 0 /Ascent 905 /Descent -212 /CapHeight 716 /StemV 80 >>',
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+  ];
+  let out = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n'; const offs = [];
+  objs.forEach((o,i) => { offs.push(out.length); out += `${i+1} 0 obj\n${o}\nendobj\n`; });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length+1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10,'0') + ' 00000 n \n').join('');
+  out += `trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return new Blob([Uint8Array.from(out, ch => ch.charCodeAt(0) & 255)], {type:'application/pdf'});
+}
+$('#btnProblemas').addEventListener('click', () => { show('problemas'); if(!P.cur) nextProblem(); });
+$('#btnOtroProb').addEventListener('click', nextProblem);
+$('#btnPrintProb').addEventListener('click', () => window.print());
+$('#btnPdfProb').addEventListener('click', () => {
+  const url = URL.createObjectURL(problemPDF(P.cur));
+  const a = document.createElement('a');
+  a.href = url; a.download = `Problema de divisibilidad ${P.idx+1}.pdf`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+});
 
 /* ---------- Teoría: probar número ---------- */
 function probar(){
