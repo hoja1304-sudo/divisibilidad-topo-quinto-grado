@@ -986,6 +986,80 @@ const PROBLEMAS = [
       {titulo:'Viernes', n:75, c:[3,5], nota:'75 es divisible por 3 y múltiplo de 5 (5 × 15 = 75). Recuerda: ser múltiplo de 5 es lo mismo que ser divisible por 5.'},
       {titulo:'Domingo', n:80, c:[3,5], nota:'80 es múltiplo de 5, pero no es divisible por 3.'}
     ]
+  },
+  // ----- Ítems similares (otro contexto, valores parecidos) -----
+  itemTabla({
+    contexto: 'En una floristería se colocan flores en jarrones de distintos colores. La siguiente tabla muestra la cantidad de flores que contiene cada jarrón:',
+    col1: 'Color del jarrón', col2: 'Cantidad de flores', objeto: 'Jarrón',
+    filas: [['Lila',24],['Blanco',16],['Rosado',27]],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál es el color del jarrón que contiene una cantidad de flores que corresponde a un número divisible por 2 y 3?',
+    divisores: [2,3]
+  }),
+  itemTabla({
+    contexto: 'Un panadero acomoda panes en bandejas de distintos colores. La siguiente tabla muestra la cantidad de panes que contiene cada bandeja:',
+    col1: 'Color de la bandeja', col2: 'Cantidad de panes', objeto: 'Bandeja',
+    filas: [['Gris',46],['Café',55],['Negra',38]],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál es el color de la bandeja que contiene una cantidad de panes que corresponde a un número divisible por 5?',
+    divisores: [5]
+  }),
+  itemTabla({
+    contexto: 'En una granja se guardan huevos en cartones de distintos colores. La siguiente tabla muestra la cantidad de huevos que contiene cada cartón:',
+    col1: 'Color del cartón', col2: 'Cantidad de huevos', objeto: 'Cartón',
+    filas: [['Amarillo',60],['Verde',75],['Rojo',70]],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál es el color del cartón que contiene una cantidad de huevos que corresponde a un número divisible por 2, por 3 y por 5 simultáneamente?',
+    divisores: [2,3,5]
+  }),
+  {
+    bloques: [],
+    pregunta: 'Mauricio guardó un total de 57 lápices en cajas. Si cada una de esas cajas contiene la misma cantidad de lápices, entonces, ¿cuál de las siguientes opciones corresponde a una posible cantidad de lápices contenida en cada una de esas cajas?',
+    opciones: ['2','3','5'],
+    revisar: [
+      {titulo:'Cajas de 2 lápices', n:57, c:[2], nota:'Al guardar en cajas de 2 sobraría 1 lápiz (2 × 28 = 56).'},
+      {titulo:'Cajas de 3 lápices', n:57, c:[3], nota:'57 ÷ 3 = 19: se llenan 19 cajas y no sobra ningún lápiz.'},
+      {titulo:'Cajas de 5 lápices', n:57, c:[5], nota:'Al guardar en cajas de 5 sobrarían 2 lápices (5 × 11 = 55).'}
+    ]
+  },
+  {
+    bloques: [
+      {t:'p', text:'Considere el siguiente contexto:'},
+      {t:'p', text:'En un colegio, cada casillero tiene un número de cuatro dígitos que debe ser divisible entre 3 y entre 5 al mismo tiempo. El conserje pintó los primeros tres dígitos del número de un casillero, pero le faltó pintar el último:'},
+      {t:'digitos', cifras:['3','5','2']}
+    ],
+    pregunta: 'De acuerdo con el contexto anterior, ¿cuál debe ser el último dígito para que el número del casillero cumpla con la condición?',
+    opciones: ['0','5','8'],
+    revisar: [
+      {titulo:'Con 0 el número es', n:3520, c:[3,5]},
+      {titulo:'Con 5 el número es', n:3525, c:[3,5]},
+      {titulo:'Con 8 el número es', n:3528, c:[3,5]}
+    ]
+  },
+  {
+    bloques: [
+      {t:'p', text:'La siguiente tabla muestra la cantidad de jugadores que tiene cada equipo deportivo en una escuela:'},
+      {t:'tabla', col1:'Equipo deportivo', col2:'Cantidad de jugadores', filas:[['Voleibol',26],['Fútbol',27],['Baloncesto',29]]},
+      {t:'p', text:'Además, el entrenador de la escuela requiere elegir uno de esos equipos para formar, con la cantidad de jugadores del equipo elegido, dos subgrupos que cumplan con las siguientes condiciones:'},
+      {t:'lista', items:['Cada subgrupo tiene la misma cantidad de jugadores.','Cada jugador queda ubicado en solo uno de los subgrupos.']}
+    ],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál equipo cumple con las condiciones establecidas por el entrenador de la escuela?',
+    opciones: ['Voleibol','Fútbol','Baloncesto'],
+    revisar: [
+      {titulo:'Voleibol', n:26, c:[2], nota:'26 ÷ 2 = 13: se forman dos subgrupos de 13 jugadores cada uno.'},
+      {titulo:'Fútbol', n:27, c:[2], nota:'27 no se puede repartir en dos subgrupos iguales: quedarían 13 y 14 jugadores.'},
+      {titulo:'Baloncesto', n:29, c:[2], nota:'29 no se puede repartir en dos subgrupos iguales: quedarían 14 y 15 jugadores.'}
+    ]
+  },
+  {
+    bloques: [
+      {t:'p', text:'En la siguiente tabla se muestra la cantidad de personas que visitó diariamente un museo, durante tres días de una semana:'},
+      {t:'tabla', col1:'Día', col2:'Cantidad de personas', filas:[['Lunes',84],['Martes',85],['Miércoles',90]]}
+    ],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál fue el día en que la cantidad de personas que visitó ese museo corresponde a un número divisible por tres y múltiplo de cinco?',
+    opciones: ['Lunes','Martes','Miércoles'],
+    revisar: [
+      {titulo:'Lunes', n:84, c:[3,5], nota:'84 es divisible por 3, pero no es múltiplo de 5.'},
+      {titulo:'Martes', n:85, c:[3,5], nota:'85 es múltiplo de 5, pero no es divisible por 3.'},
+      {titulo:'Miércoles', n:90, c:[3,5], nota:'90 es divisible por 3 y múltiplo de 5 (5 × 18 = 90). Recuerda: ser múltiplo de 5 es lo mismo que ser divisible por 5.'}
+    ]
   }
 ];
 const LETRAS = ['A','B','C','D'];
