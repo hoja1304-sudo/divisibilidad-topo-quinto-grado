@@ -219,6 +219,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .pdig .blank{display:inline-block;width:2.2em;border-bottom:2px solid #111;height:1.2em}
 .fb-head{display:flex;align-items:center;gap:10px;font-weight:900;font-size:clamp(1.05rem,2.5vw,1.4rem);margin:4px 0 8px}
 .fb-head .em{font-size:2em;line-height:1}
+.fb-head.fb-big{justify-content:center;text-align:center;background:var(--panel);border:3px solid var(--ok);border-radius:18px;padding:14px;font-size:clamp(1.2rem,3vw,1.7rem)}
+.fb-head.fb-big .em{font-size:2.4em;animation:wob .8s ease-in-out infinite alternate}
 .fb-head.ok{color:var(--ok)}.fb-head.bad{color:var(--bad)}
 .exp.good{outline:3px solid var(--ok)}
 @media print{
@@ -1027,8 +1029,10 @@ function answerProblem(i){
   if(i !== ok) btns[i].classList.add('bad');
   (i === ok ? chime : boing)();
   const head = i === ok
-    ? `<div class="fb-head ok"><span class="em">🥳</span>¡Correcto! La respuesta es ${LETRAS[ok]}) ${esc(p.opciones[ok])}.</div>`
+    ? `<div class="fb-head ok fb-big"><span class="em">${['🥳','🎉','🤩','👏','🌟'][rnd(0,4)]}</span>¡Correcto! ¡Muy bien! La respuesta es ${LETRAS[ok]}) ${esc(p.opciones[ok])}.</div>`
     : `<div class="fb-head bad"><span class="em">😮</span>No es correcto. La respuesta es ${LETRAS[ok]}) ${esc(p.opciones[ok])}. Veamos paso a paso:</div>`;
+  // si acierta: solo la felicitación; el paso a paso se muestra únicamente cuando se equivoca
+  if(i === ok){ $('#probFb').innerHTML = head; $('#probFb').scrollIntoView({behavior:'smooth', block:'nearest'}); return; }
   $('#probFb').innerHTML = head + p.revisar.map((r,k) =>
     `<div class="exp${k === ok ? ' good' : ''}"><h4>${LETRAS[k]}) ${esc(r.titulo)}: <span class="n">${r.n}</span></h4>${explain(r.n, r.c)}${r.nota ? `<p class="concl">${esc(r.nota)}</p>` : ''}</div>`).join('');
   $('#probFb').scrollIntoView({behavior:'smooth', block:'nearest'});
