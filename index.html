@@ -1060,6 +1060,21 @@ const PROBLEMAS = [
       {titulo:'Martes', n:85, c:[3,5], nota:'85 es múltiplo de 5, pero no es divisible por 3.'},
       {titulo:'Miércoles', n:90, c:[3,5], nota:'90 es divisible por 3 y múltiplo de 5 (5 × 18 = 90). Recuerda: ser múltiplo de 5 es lo mismo que ser divisible por 5.'}
     ]
+  },
+  // ----- Ítem de mayor dificultad: primero se calcula la edad futura -----
+  {
+    bloques: [
+      {t:'p', text:'Considere la siguiente información:'},
+      {t:'p', text:'La siguiente tabla muestra la edad actual de tres amigos:'},
+      {t:'tabla', col1:'Nombre', col2:'Edad actual (en años)', filas:[['Jorge',15],['David',27],['Manuel',31]]}
+    ],
+    pregunta: 'De acuerdo con la información anterior, dentro de 9 años, ¿cuál de ellos tendrá una edad que corresponde a un número divisible por 5 y 2 simultáneamente?',
+    opciones: ['Jorge','David','Manuel'],
+    revisar: [
+      {titulo:'Jorge dentro de 9 años (15 + 9)', n:24, c:[2,5], nota:'Jorge tendrá 24 años: es par, pero no termina en 0 ni en 5.'},
+      {titulo:'David dentro de 9 años (27 + 9)', n:36, c:[2,5], nota:'David tendrá 36 años: es par, pero no termina en 0 ni en 5.'},
+      {titulo:'Manuel dentro de 9 años (31 + 9)', n:40, c:[2,5], nota:'Manuel tendrá 40 años: termina en 0, por eso es divisible por 2 y por 5 al mismo tiempo.'}
+    ]
   }
 ];
 const LETRAS = ['A','B','C','D'];
