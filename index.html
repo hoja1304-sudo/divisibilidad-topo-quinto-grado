@@ -309,7 +309,6 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div class="hud">
     <div class="hud-left">
       <button class="btn btn-ghost" id="btnInicioJuego" title="Regresar a inicio">🏠 Inicio</button>
-      <button class="btn btn-alt" id="btnOtro" title="Cambiar por otro ítem">🔄 Otro ítem</button>
       <button class="icon-btn" id="btnSonido" aria-pressed="true" aria-label="Apagar sonido" title="Sonido encendido / apagado">🔊</button>
     </div>
     <div class="hud-right">
@@ -866,12 +865,6 @@ $('#mCont').addEventListener('click', () => { hideModal(); stopVoice(); nextRoun
 $('#mInicio').addEventListener('click', () => show('inicio'));
 
 $('#btnInicioJuego').addEventListener('click', () => show('inicio'));
-$('#btnOtro').addEventListener('click', () => {
-  if(G.state === 'idle') return;
-  hideModal(); $('#toast').classList.remove('show');
-  if(G.state === 'feedback'){ nextRound(); return; }   // ya respondido: pasa al siguiente
-  nextRound(true);                                     // cambia el ítem sin contar la ronda
-});
 $('#board').addEventListener('click', () => { if(G.c) sayInstruction(G.c); });
 function paintSound(){
   const b = $('#btnSonido');
