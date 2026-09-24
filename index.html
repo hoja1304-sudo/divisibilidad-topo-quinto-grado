@@ -213,6 +213,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .popt.ok{border-color:#1f9d55;background:#e8f7ee}
 .popt.bad{border-color:#d8453a;background:#fdeceb}
 .prob-fb{margin-top:14px}
+.plist{margin:0 0 .9em;padding-left:2.4em}
+.plist li{margin:.35em 0;padding-left:.8em}
 .pdig{display:flex;justify-content:center;gap:1.6em;font-weight:700;font-size:1.1em;margin:1.2em 0 1.4em}
 .pdig .blank{display:inline-block;width:2.2em;border-bottom:2px solid #111;height:1.2em}
 .fb-head{display:flex;align-items:center;gap:10px;font-weight:900;font-size:clamp(1.05rem,2.5vw,1.4rem);margin:4px 0 8px}
@@ -954,6 +956,21 @@ const PROBLEMAS = [
       {titulo:'Con 2 el código es', n:2412, c:[3,5]},
       {titulo:'Con 5 el código es', n:2415, c:[3,5]}
     ]
+  },
+  {
+    bloques: [
+      {t:'p', text:'La siguiente tabla muestra la cantidad de estudiantes que tiene cada grupo de música en una escuela:'},
+      {t:'tabla', col1:'Grupo de música', col2:'Cantidad de estudiantes', filas:[['Piano',35],['Guitarra',34],['Trompeta',31]]},
+      {t:'p', text:'Además, el director de la escuela requiere elegir uno de esos grupos para formar, con la cantidad de estudiantes del grupo elegido, dos subgrupos que cumplan con las siguientes condiciones:'},
+      {t:'lista', items:['Cada subgrupo tiene la misma cantidad de estudiantes.','Cada estudiante queda ubicado en solo uno de los subgrupos.']}
+    ],
+    pregunta: 'De acuerdo con la información anterior, ¿cuál grupo cumple con las condiciones establecidas por el director de la escuela?',
+    opciones: ['Piano','Guitarra','Trompeta'],
+    revisar: [
+      {titulo:'Piano', n:35, c:[2], nota:'35 no se puede repartir en dos subgrupos iguales: quedarían 17 y 18 estudiantes.'},
+      {titulo:'Guitarra', n:34, c:[2], nota:'34 ÷ 2 = 17: se forman dos subgrupos de 17 estudiantes cada uno.'},
+      {titulo:'Trompeta', n:31, c:[2], nota:'31 no se puede repartir en dos subgrupos iguales: quedarían 15 y 16 estudiantes.'}
+    ]
   }
 ];
 const LETRAS = ['A','B','C','D'];
@@ -976,6 +993,7 @@ function bloqueHTML(b){
   if(b.t === 'p') return `<p>${esc(b.text)}</p>`;
   if(b.t === 'tabla') return `<table class="ptab"><thead><tr><th>${esc(b.col1)}</th><th>${esc(b.col2)}</th></tr></thead>
       <tbody>${b.filas.map(f => `<tr><td>${esc(f[0])}</td><td>${f[1]}</td></tr>`).join('')}</tbody></table>`;
+  if(b.t === 'lista') return `<ul class="plist">${b.items.map(it => `<li>${esc(it)}</li>`).join('')}</ul>`;
   if(b.t === 'digitos') return `<div class="pdig">${b.cifras.map(d => `<span>${esc(d)}</span>`).join('')}<span class="blank"></span></div>`;
   return '';
 }
@@ -1044,7 +1062,17 @@ function problemPDF(p){
       y -= 10; rule(1);
       b.filas.forEach((f,i) => { y -= i ? 26 : 22; cell(f[0]); cell(String(f[1]), true); });
       y -= 12; rule(1.2);
-      y -= 14;
+      y -= 28;
+    }
+    if(b.t === 'lista'){
+      b.items.forEach(it => {
+        y -= 6;
+        const r = 2.2, cx = L + 16, cy = y + 3.6, k = r * .5523;
+        ops.push(`${cx+r} ${cy} m ${cx+r} ${cy+k} ${cx+k} ${cy+r} ${cx} ${cy+r} c ${cx-k} ${cy+r} ${cx-r} ${cy+k} ${cx-r} ${cy} c `
+          + `${cx-r} ${cy-k} ${cx-k} ${cy-r} ${cx} ${cy-r} c ${cx+k} ${cy-r} ${cx+r} ${cy-k} ${cx+r} ${cy} c f`);
+        wrapText(it, W - 44, S).forEach(l => { txt(L + 44, l); y -= LEAD; });
+      });
+      y -= 8;
     }
     if(b.t === 'digitos'){
       y -= 18;
