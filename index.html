@@ -213,6 +213,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .popt.ok{border-color:#1f9d55;background:#e8f7ee}
 .popt.bad{border-color:#d8453a;background:#fdeceb}
 .prob-fb{margin-top:14px}
+.pdig{display:flex;justify-content:center;gap:1.6em;font-weight:700;font-size:1.1em;margin:1.2em 0 1.4em}
+.pdig .blank{display:inline-block;width:2.2em;border-bottom:2px solid #111;height:1.2em}
 .fb-head{display:flex;align-items:center;gap:10px;font-weight:900;font-size:clamp(1.05rem,2.5vw,1.4rem);margin:4px 0 8px}
 .fb-head .em{font-size:2em;line-height:1}
 .fb-head.ok{color:var(--ok)}.fb-head.bad{color:var(--bad)}
@@ -894,33 +896,69 @@ function finish(){
 }
 
 /* ---------- Problemas ---------- */
-// Banco de ítems: para agregar uno, copiar un bloque y cambiar los datos.
-// «divisores» es la condición que se pregunta; debe cumplirla una sola fila.
+// Banco de ítems. Cada ítem tiene:
+//  bloques:  lo que va antes de la pregunta ({t:'p'} párrafo, {t:'tabla'} tabla, {t:'digitos'} cifras con espacio en blanco)
+//  pregunta, opciones (3), y revisar: para cada opción, el número y los divisores que se comprueban.
+//  La opción correcta es la única cuyo número cumple sus divisores.
+function itemTabla(o){
+  return {
+    bloques: [{t:'p', text:'Considere la siguiente información:'}, {t:'p', text:o.contexto},
+              {t:'tabla', col1:o.col1, col2:o.col2, filas:o.filas}],
+    pregunta: o.pregunta,
+    opciones: o.filas.map(f => f[0]),
+    revisar: o.filas.map(f => ({titulo:`${o.objeto} ${f[0].toLowerCase()}`, n:f[1], c:o.divisores}))
+  };
+}
 const PROBLEMAS = [
-  {
+  itemTabla({
     contexto: 'Un agricultor ha recolectado una cantidad de manzanas y las coloca en cajas de distintos colores. La siguiente tabla muestra la cantidad de manzanas que contiene cada caja:',
     col1: 'Color de la caja', col2: 'Cantidad de manzanas', objeto: 'Caja',
     filas: [['Roja',14],['Azul',18],['Verde',21]],
     pregunta: 'De acuerdo con la información anterior, ¿cuál es el color de la caja que contiene una cantidad de manzanas que corresponde a un número divisible por 2 y 3?',
     divisores: [2,3]
-  },
-  {
+  }),
+  itemTabla({
     contexto: 'Una vendedora acomoda naranjas en canastas de distintos colores. La siguiente tabla muestra la cantidad de naranjas que contiene cada canasta:',
     col1: 'Color de la canasta', col2: 'Cantidad de naranjas', objeto: 'Canasta',
     filas: [['Amarilla',42],['Blanca',35],['Celeste',28]],
     pregunta: 'De acuerdo con la información anterior, ¿cuál es el color de la canasta que contiene una cantidad de naranjas que corresponde a un número divisible por 5?',
     divisores: [5]
-  },
-  {
+  }),
+  itemTabla({
     contexto: 'En la biblioteca de una escuela se acomodaron libros en estantes de distintos colores. La siguiente tabla muestra la cantidad de libros que contiene cada estante:',
     col1: 'Color del estante', col2: 'Cantidad de libros', objeto: 'Estante',
     filas: [['Rojo',45],['Verde',80],['Azul',90]],
     pregunta: 'De acuerdo con la información anterior, ¿cuál es el color del estante que contiene una cantidad de libros que corresponde a un número divisible por 2, por 3 y por 5 simultáneamente?',
     divisores: [2,3,5]
+  }),
+  {
+    bloques: [],
+    pregunta: 'Rosaura empacó un total de 81 naranjas en bolsas. Si cada una de esas bolsas contiene la misma cantidad de naranjas, entonces, ¿cuál de las siguientes opciones corresponde a una posible cantidad de naranjas contenida en cada una de esas bolsas?',
+    opciones: ['3','5','10'],
+    revisar: [
+      {titulo:'Bolsas de 3 naranjas', n:81, c:[3], nota:'81 ÷ 3 = 27: se forman 27 bolsas y no sobra ninguna naranja.'},
+      {titulo:'Bolsas de 5 naranjas', n:81, c:[5], nota:'Al repartir en bolsas de 5 sobraría 1 naranja (5 × 16 = 80).'},
+      {titulo:'Bolsas de 10 naranjas', n:81, c:[10], nota:'Al repartir en bolsas de 10 sobraría 1 naranja (10 × 8 = 80).'}
+    ]
+  },
+  {
+    bloques: [
+      {t:'p', text:'Considere el siguiente contexto:'},
+      {t:'p', text:'En una bodega de supermercado, cada producto tiene un código de cuatro dígitos que debe ser divisible entre 3 y entre 5 al mismo tiempo. Un empleado registró un producto con los primeros tres dígitos del código, pero olvidó el último:'},
+      {t:'digitos', cifras:['2','4','1']}
+    ],
+    pregunta: 'De acuerdo con el contexto anterior, ¿cuál debe ser el último dígito para que el código cumpla con la condición?',
+    opciones: ['0','2','5'],
+    revisar: [
+      {titulo:'Con 0 el código es', n:2410, c:[3,5]},
+      {titulo:'Con 2 el código es', n:2412, c:[3,5]},
+      {titulo:'Con 5 el código es', n:2415, c:[3,5]}
+    ]
   }
 ];
 const LETRAS = ['A','B','C','D'];
 const esc = t => String(t).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const correctaDe = p => p.revisar.findIndex(r => sat(r.n, r.c));
 const P = {order:[], pos:0, cur:null, idx:0};
 
 function nextProblem(){
@@ -934,32 +972,34 @@ function nextProblem(){
   P.cur = PROBLEMAS[P.idx];
   renderProblem();
 }
+function bloqueHTML(b){
+  if(b.t === 'p') return `<p>${esc(b.text)}</p>`;
+  if(b.t === 'tabla') return `<table class="ptab"><thead><tr><th>${esc(b.col1)}</th><th>${esc(b.col2)}</th></tr></thead>
+      <tbody>${b.filas.map(f => `<tr><td>${esc(f[0])}</td><td>${f[1]}</td></tr>`).join('')}</tbody></table>`;
+  if(b.t === 'digitos') return `<div class="pdig">${b.cifras.map(d => `<span>${esc(d)}</span>`).join('')}<span class="blank"></span></div>`;
+  return '';
+}
 function renderProblem(){
   const p = P.cur;
   $('#probCount').textContent = `Ítem ${P.idx+1} de ${PROBLEMAS.length}`;
-  $('#paper').innerHTML = `
-    <p>Considere la siguiente información:</p>
-    <p>${esc(p.contexto)}</p>
-    <table class="ptab"><thead><tr><th>${esc(p.col1)}</th><th>${esc(p.col2)}</th></tr></thead>
-      <tbody>${p.filas.map(f => `<tr><td>${esc(f[0])}</td><td>${f[1]}</td></tr>`).join('')}</tbody></table>
+  $('#paper').innerHTML = p.bloques.map(bloqueHTML).join('') + `
     <p>${esc(p.pregunta)}</p>
-    <div class="popts">${p.filas.map((f,i) => `<button class="popt" data-i="${i}"><span class="l">${LETRAS[i]})</span><span>${esc(f[0])}</span></button>`).join('')}</div>`;
+    <div class="popts">${p.opciones.map((o,i) => `<button class="popt" data-i="${i}"><span class="l">${LETRAS[i]})</span><span>${esc(o)}</span></button>`).join('')}</div>`;
   $('#probFb').innerHTML = '';
   $$('#paper .popt').forEach(b => b.addEventListener('click', () => answerProblem(+b.dataset.i)));
 }
 function answerProblem(i){
-  const p = P.cur, c = p.divisores;
-  const ok = p.filas.findIndex(f => sat(f[1], c));
+  const p = P.cur, ok = correctaDe(p);
   const btns = $$('#paper .popt');
   btns.forEach(b => b.disabled = true);
   btns[ok].classList.add('ok');
   if(i !== ok) btns[i].classList.add('bad');
   (i === ok ? chime : boing)();
   const head = i === ok
-    ? `<div class="fb-head ok"><span class="em">🥳</span>¡Correcto! La respuesta es ${LETRAS[ok]}) ${esc(p.filas[ok][0])}.</div>`
-    : `<div class="fb-head bad"><span class="em">😮</span>No es correcto. La respuesta es ${LETRAS[ok]}) ${esc(p.filas[ok][0])}. Veamos paso a paso:</div>`;
-  $('#probFb').innerHTML = head + p.filas.map((f,k) =>
-    `<div class="exp${k === ok ? ' good' : ''}"><h4>${LETRAS[k]}) ${esc(p.objeto)} ${esc(f[0].toLowerCase())}: <span class="n">${f[1]}</span></h4>${explain(f[1], c)}</div>`).join('');
+    ? `<div class="fb-head ok"><span class="em">🥳</span>¡Correcto! La respuesta es ${LETRAS[ok]}) ${esc(p.opciones[ok])}.</div>`
+    : `<div class="fb-head bad"><span class="em">😮</span>No es correcto. La respuesta es ${LETRAS[ok]}) ${esc(p.opciones[ok])}. Veamos paso a paso:</div>`;
+  $('#probFb').innerHTML = head + p.revisar.map((r,k) =>
+    `<div class="exp${k === ok ? ' good' : ''}"><h4>${LETRAS[k]}) ${esc(r.titulo)}: <span class="n">${r.n}</span></h4>${explain(r.n, r.c)}${r.nota ? `<p class="concl">${esc(r.nota)}</p>` : ''}</div>`).join('');
   $('#probFb').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
@@ -995,19 +1035,30 @@ function problemPDF(p){
   const txt = (x, s) => ops.push(`BT /F1 ${S} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td (${pdfEsc(s)}) Tj ET`);
   const rule = (w) => ops.push(`${w} w ${L} ${y.toFixed(2)} m ${L+W} ${y.toFixed(2)} l S`);
   const para = s => { wrapText(s, W, S).forEach(l => { txt(L, l); y -= LEAD; }); };
-  para('Considere la siguiente información:');
-  para(p.contexto);
-  // tabla
-  const cx = L + W*.74, cell = (s, center) => txt(center ? cx - textW(s,S)/2 : L + 22, s);
-  y -= 4; rule(1.2);
-  y -= 19; cell(p.col1); cell(p.col2, true);
-  y -= 10; rule(1);
-  p.filas.forEach((f,i) => { y -= i ? 26 : 22; cell(f[0]); cell(String(f[1]), true); });
-  y -= 12; rule(1.2);
-  y -= 30;
+  p.bloques.forEach(b => {
+    if(b.t === 'p') para(b.text);
+    if(b.t === 'tabla'){
+      const cx = L + W*.74, cell = (t, center) => txt(center ? cx - textW(t,S)/2 : L + 22, t);
+      y -= 4; rule(1.2);
+      y -= 19; cell(b.col1); cell(b.col2, true);
+      y -= 10; rule(1);
+      b.filas.forEach((f,i) => { y -= i ? 26 : 22; cell(f[0]); cell(String(f[1]), true); });
+      y -= 12; rule(1.2);
+      y -= 14;
+    }
+    if(b.t === 'digitos'){
+      y -= 18;
+      const gap = 34, n = b.cifras.length + 1, x0 = L + W/2 - gap*(n-1)/2;
+      b.cifras.forEach((d,i) => txt(x0 + i*gap - textW(d,S)/2, d));
+      const bx = x0 + (n-1)*gap;
+      ops.push(`0.8 w ${(bx-12).toFixed(2)} ${(y-2).toFixed(2)} m ${(bx+12).toFixed(2)} ${(y-2).toFixed(2)} l S`);
+      y -= 34;
+    }
+  });
+  if(!p.bloques.length || p.bloques[p.bloques.length-1].t !== 'tabla') y -= 6;
   para(p.pregunta);
   y -= 8;
-  p.filas.forEach((f,i) => { txt(L, LETRAS[i] + ')'); txt(L + 28, f[0]); y -= 28; });
+  p.opciones.forEach((o,i) => { txt(L, LETRAS[i] + ')'); txt(L + 28, o); y -= 28; });
 
   const stream = ops.join('\n');
   const objs = [
