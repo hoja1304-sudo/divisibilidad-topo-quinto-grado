@@ -1066,13 +1066,13 @@ const PROBLEMAS = [
     bloques: [
       {t:'p', text:'Considere la siguiente información:'},
       {t:'p', text:'La siguiente tabla muestra la edad actual de tres amigos:'},
-      {t:'tabla', col1:'Nombre', col2:'Edad actual (en años)', filas:[['Jorge',15],['David',27],['Manuel',31]]}
+      {t:'tabla', col1:'Nombre', col2:'Edad actual (en años)', filas:[['Jorge',15],['David',26],['Manuel',31]]}
     ],
     pregunta: 'De acuerdo con la información anterior, dentro de 9 años, ¿cuál de ellos tendrá una edad que corresponde a un número divisible por 5 y 2 simultáneamente?',
     opciones: ['Jorge','David','Manuel'],
     revisar: [
       {titulo:'Jorge dentro de 9 años (15 + 9)', n:24, c:[2,5], nota:'Jorge tendrá 24 años: es par, pero no termina en 0 ni en 5.'},
-      {titulo:'David dentro de 9 años (27 + 9)', n:36, c:[2,5], nota:'David tendrá 36 años: es par, pero no termina en 0 ni en 5.'},
+      {titulo:'David dentro de 9 años (26 + 9)', n:35, c:[2,5], nota:'David tendrá 35 años: termina en 5, por eso es divisible por 5, pero no es par; no es divisible por 2.'},
       {titulo:'Manuel dentro de 9 años (31 + 9)', n:40, c:[2,5], nota:'Manuel tendrá 40 años: termina en 0, por eso es divisible por 2 y por 5 al mismo tiempo.'}
     ]
   }
